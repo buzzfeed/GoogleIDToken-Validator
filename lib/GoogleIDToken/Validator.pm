@@ -27,7 +27,7 @@ our $VERSION = '0.02';
 =head1 SYNOPSIS
 
 Perl implamentation of Google Access Token verification.
-Details can be found on android developers blog: 
+Details can be found on android developers blog:
 L<http://android-developers.blogspot.com/2013/01/verifying-back-end-calls-from-android.html>
 
 This module ONLY:
@@ -39,14 +39,14 @@ Nothing more. Nothing connected with authorization on any of Google APIs etc etc
     use GoogleIDToken::Validator;
 
     my $validator = GoogleIDToken::Validator->new(
-	#do_not_cache_certs => 1, 					# will download google certificates from web every call of verify
-        #google_certs_url	=> 'https://some.domain.com/certs',	# in case they change URL in the future... default is: https://www.googleapis.com/oauth2/v1/certs
-	certs_cache_file 	=> '/tmp/google.crt',			# will cache certs in this file for faster verify if you are using CGI
-	web_client_id 	=> '111222333444.apps.googleusercontent.com',	# Your Client ID for web applications received in Google APIs console
-        app_client_ids 	=> [								# Array of your Client ID for installed applications received in Google APIs console
-	    '777777777777-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',	# for exm. your production keystore ID
-	    '888888888888-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com'	# and your eclipse debug keystore ID
-	]
+        #do_not_cache_certs => 1,                                         # will download google certificates from web every call of verify
+        #google_certs_url   => 'https://some.domain.com/certs',           # in case they change URL in the future... default is: https://www.googleapis.com/oauth2/v1/certs
+        certs_cache_file    => '/tmp/google.crt',                         # will cache certs in this file for faster verify if you are using CGI
+        web_client_id       => '111222333444.apps.googleusercontent.com', # Your Client ID for web applications received in Google APIs console
+        app_client_ids      => [                                          # Array of your Client ID for installed applications received in Google APIs console
+            '777777777777-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com', # for exm. your production keystore ID
+            '888888888888-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com'  # and your eclipse debug keystore ID
+        ]
     );
 
     # web_client_id and at least one of app_client_ids are required
@@ -56,9 +56,9 @@ Nothing more. Nothing connected with authorization on any of Google APIs etc etc
 
     my $payload = $validator->verify($token);
     if($payload) {
-	# token is OK, lets see what we have got
+        # token is OK, lets see what we have got
         use Data::Dumper;
-	print "payload: ".Dumper($payload);
+        print "payload: ".Dumper($payload);
     }
 
 =cut
@@ -66,21 +66,21 @@ Nothing more. Nothing connected with authorization on any of Google APIs etc etc
 sub new {
     my($class, %args) = @_;
     my $self = bless({}, $class);
-    
+
     $self->{google_certs_url} = exists $args{google_certs_url} ? $args{google_certs_url} : 'https://www.googleapis.com/oauth2/v1/certs';
     $self->{certs_cache_file} = exists $args{certs_cache_file} ? $args{certs_cache_file} : undef;
     $self->{do_not_cache_certs} = exists $args{do_not_cache_certs} ? $args{do_not_cache_certs} : 0;
 
     if($args{web_client_id}) {
-	$self->{web_client_id} = $args{web_client_id};
+        $self->{web_client_id} = $args{web_client_id};
     } else {
-	croak "No Web Client ID was specified to check against.";
+        croak "No Web Client ID was specified to check against.";
     }
 
     if($args{app_client_ids}) {
-	$self->{app_client_ids} = $args{app_client_ids};
+        $self->{app_client_ids} = $args{app_client_ids};
     } else {
-	croak "No Application Client IDs were specified to check against.";
+        croak "No Application Client IDs were specified to check against.";
     }
 
     $self->{certs} = undef;
@@ -90,48 +90,46 @@ sub new {
 
 sub verify {
     my($self, $token) = @_;
-    
+
     if($self->certs_expired()) {
-	$self->get_certs();
+        $self->get_certs();
     }
-    
+
     my($env, $payload, $signature) = split /\./, $token;
     my $signed = $env . '.' . $payload;
-    
+
     $signature = urlsafe_b64decode($signature);
     $env = decode_json(urlsafe_b64decode($env));
     $payload = decode_json(urlsafe_b64decode($payload));
-    
-    
+
     if(!exists $self->{certs}->{$env->{kid}}) {
-	carp "There are no such certificate that used to sign this token (kid: $env->{kid}).";
-	return undef;
+        carp "There are no such certificate that used to sign this token (kid: $env->{kid}).";
+        return undef;
     }
     my $rsa = Crypt::OpenSSL::RSA->new_public_key($self->{certs}->{$env->{kid}}->pubkey());
     $rsa->use_sha256_hash();
-    
+
     if(!$rsa->verify($signed, $signature)) {
-	carp "Signature is wrong.";
+        carp "Signature is wrong.";
         return undef;
     }
-    
+
     if($payload->{aud} ne $self->{web_client_id}) {
-	carp "Web Client ID missmatch. ($payload->{aud}).";
-	return undef;
+        carp "Web Client ID missmatch. ($payload->{aud}).";
+        return undef;
     }
-    
+
     foreach my $cid (@{$self->{app_client_ids}}) {
-	return $payload if($cid eq $payload->{azp});
+        return $payload if($cid eq $payload->{azp});
     }
     carp "App Client ID missmatch. ($payload->{azp})."
-    
 }
 
 sub certs_expired {
     my $self = shift;
     return 1 if(!$self->{certs});
     foreach my $kid (keys %{$self->{certs}}) {
-	return 1 if(str2time($self->{certs}->{$kid}->notAfter()) < time);
+        return 1 if(str2time($self->{certs}->{$kid}->notAfter()) < time);
     }
     return 0;
 }
@@ -139,14 +137,14 @@ sub certs_expired {
 sub get_certs {
     my $self = shift;
     if($self->{do_not_cache_certs}) {
-	$self->get_certs_from_web();
+        $self->get_certs_from_web();
     } else {
-	if($self->{certs_cache_file} && -e $self->{certs_cache_file}) {
-	    $self->get_certs_from_file();
-	}
+        if($self->{certs_cache_file} && -e $self->{certs_cache_file}) {
+            $self->get_certs_from_file();
+        }
         if($self->certs_expired()) {
-    	    $self->get_certs_from_web();
-	}
+            $self->get_certs_from_web();
+        }
     }
 }
 
@@ -156,9 +154,9 @@ sub get_certs_from_file {
     my $json_certs = '';
     while(<$fh>) { $json_certs .= $_ }
     if($json_certs) {
-	$self->parse_certs($json_certs);
+        $self->parse_certs($json_certs);
     } else {
-	$self->{certs} = undef;
+        $self->{certs} = undef;
     }
     close $fh;
 }
@@ -167,16 +165,14 @@ sub get_certs_from_web {
     my($self) = @_;
     my $json_certs = get($self->{google_certs_url});
     if($json_certs) {
-	$self->parse_certs($json_certs);
-	if(!$self->{do_not_cache_certs} && $self->{certs_cache_file}) {
-	    open my $fh, ">".$self->{certs_cache_file} or croak "Can't write certs to cache file($self->{certs_cache_file}): $!";
-	    print $fh $json_certs;
-	    close $fh;
-	}
-	
+        $self->parse_certs($json_certs);
+        if(!$self->{do_not_cache_certs} && $self->{certs_cache_file}) {
+            open my $fh, ">".$self->{certs_cache_file} or croak "Can't write certs to cache file($self->{certs_cache_file}): $!";
+            print $fh $json_certs;
+            close $fh;
+        }
     } else {
-	croak "ERROR getting certs from $self->{certs_cache_file}";
-	
+        croak "ERROR getting certs from $self->{certs_cache_file}";
     }
 }
 
@@ -198,15 +194,11 @@ Please report any bugs or feature requests to C<bug-googleidtoken-validator at r
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=GoogleIDToken-Validator>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc GoogleIDToken::Validator
-
 
 You can also look for information at:
 
@@ -230,9 +222,7 @@ L<http://search.cpan.org/dist/GoogleIDToken-Validator/>
 
 =back
 
-
 =head1 ACKNOWLEDGEMENTS
-
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -273,7 +263,6 @@ YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR
 CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
 CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 =cut
 

@@ -51,7 +51,4 @@ TODO: {
   );
 
   module_boilerplate_ok('lib/GoogleIDToken/Validator.pm');
-
-
 }
-
