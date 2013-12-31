@@ -28,26 +28,40 @@ our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
-Perl implamentation of Google Access Token verification.
-Details can be found on android developers blog:
+Perl implementation of Google Access Token verification. Details can be found on android developers blog:
+
 L<http://android-developers.blogspot.com/2013/01/verifying-back-end-calls-from-android.html>
 
 This module ONLY:
-=item * Verifies that this token signed by google certificates.
+
+=over
+
+=item * Verifies that this token signed by Google certificates.
+
 =item * Verifies that this token was received by mobile application with given Client IDs and for given web application Client ID.
 
-Nothing more. Nothing connected with authorization on any of Google APIs etc etc
+=back
+
+Nothing more. Nothing connected with authorization on any of Google APIs etc. etc.
 
     use GoogleIDToken::Validator;
 
     my $validator = GoogleIDToken::Validator->new(
-        #do_not_cache_certs => 1,                                         # will download google certificates from web every call of verify
-        #google_certs_url   => 'https://some.domain.com/certs',           # in case they change URL in the future... default is: https://www.googleapis.com/oauth2/v1/certs
-        certs_cache_file    => '/tmp/google.crt',                         # will cache certs in this file for faster verify if you are using CGI
-        web_client_id       => '111222333444.apps.googleusercontent.com', # Your Client ID for web applications received in Google APIs console
-        app_client_ids      => [                                          # Array of your Client ID for installed applications received in Google APIs console
-            '777777777777-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com', # for exm. your production keystore ID
-            '888888888888-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com'  # and your eclipse debug keystore ID
+        # will download Google certificates from web every call of verify
+        #do_not_cache_certs => 1,
+        # in case they change URL in the future...
+        # default is: https://www.googleapis.com/oauth2/v1/certs
+        #google_certs_url   => 'https://some.domain.com/certs',
+        # will cache certs in this file for faster verify if you are using CGI
+        certs_cache_file    => '/tmp/google.crt',
+        # Your Client ID for web applications received in Google APIs console
+        web_client_id   => '111222333444.apps.googleusercontent.com',
+        # Array of your Client ID for installed applications received in Google APIs console
+        app_client_ids  => [
+            # for example your production keystore ID
+            '777777777777-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',
+            # and your eclipse debug keystore ID
+            '888888888888-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',
         ]
     );
 
@@ -192,9 +206,11 @@ Dmitry Mukhin, C<< <admin at dimanoid.ru> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-googleidtoken-validator at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=GoogleIDToken-Validator>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
+Please report any bugs or feature requests to C<bug-googleidtoken-validator at
+rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=GoogleIDToken-Validator>.  I
+will be notified, and then you'll automatically be notified of progress on your
+bug as I make changes.
 
 =head1 SUPPORT
 
@@ -223,8 +239,6 @@ L<http://cpanratings.perl.org/d/GoogleIDToken-Validator>
 L<http://search.cpan.org/dist/GoogleIDToken-Validator/>
 
 =back
-
-=head1 ACKNOWLEDGEMENTS
 
 =head1 LICENSE AND COPYRIGHT
 
@@ -268,4 +282,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
 
-42; # End of GoogleIDToken::Validator
+42;
