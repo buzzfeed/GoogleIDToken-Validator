@@ -1,8 +1,10 @@
 package GoogleIDToken::Validator;
 
 use 5.006;
+
 use strict;
 use warnings FATAL => 'all';
+
 use Carp;
 
 use MIME::Base64::URLSafe;
