@@ -66,20 +66,20 @@ Nothing more. Nothing connected with authorization on any of Google APIs etc etc
 =cut
 
 sub new {
-    my($class, %args) = @_;
+    my ($class, %args) = @_;
     my $self = bless({}, $class);
 
     $self->{google_certs_url} = exists $args{google_certs_url} ? $args{google_certs_url} : 'https://www.googleapis.com/oauth2/v1/certs';
     $self->{certs_cache_file} = exists $args{certs_cache_file} ? $args{certs_cache_file} : undef;
     $self->{do_not_cache_certs} = exists $args{do_not_cache_certs} ? $args{do_not_cache_certs} : 0;
 
-    if($args{web_client_id}) {
+    if ($args{web_client_id}) {
         $self->{web_client_id} = $args{web_client_id};
     } else {
         croak "No Web Client ID was specified to check against.";
     }
 
-    if($args{app_client_ids}) {
+    if ($args{app_client_ids}) {
         $self->{app_client_ids} = $args{app_client_ids};
     } else {
         croak "No Application Client IDs were specified to check against.";
@@ -93,30 +93,30 @@ sub new {
 sub verify {
     my($self, $token) = @_;
 
-    if($self->certs_expired()) {
+    if ($self->certs_expired()) {
         $self->get_certs();
     }
 
-    my($env, $payload, $signature) = split /\./, $token;
+    my ($env, $payload, $signature) = split /\./, $token;
     my $signed = $env . '.' . $payload;
 
     $signature = urlsafe_b64decode($signature);
     $env = decode_json(urlsafe_b64decode($env));
     $payload = decode_json(urlsafe_b64decode($payload));
 
-    if(!exists $self->{certs}->{$env->{kid}}) {
+    if (!exists $self->{certs}->{$env->{kid}}) {
         carp "There are no such certificate that used to sign this token (kid: $env->{kid}).";
         return undef;
     }
     my $rsa = Crypt::OpenSSL::RSA->new_public_key($self->{certs}->{$env->{kid}}->pubkey());
     $rsa->use_sha256_hash();
 
-    if(!$rsa->verify($signed, $signature)) {
+    if (!$rsa->verify($signed, $signature)) {
         carp "Signature is wrong.";
         return undef;
     }
 
-    if($payload->{aud} ne $self->{web_client_id}) {
+    if ($payload->{aud} ne $self->{web_client_id}) {
         carp "Web Client ID missmatch. ($payload->{aud}).";
         return undef;
     }
@@ -138,13 +138,13 @@ sub certs_expired {
 
 sub get_certs {
     my $self = shift;
-    if($self->{do_not_cache_certs}) {
+    if ($self->{do_not_cache_certs}) {
         $self->get_certs_from_web();
     } else {
-        if($self->{certs_cache_file} && -e $self->{certs_cache_file}) {
+        if ($self->{certs_cache_file} && -e $self->{certs_cache_file}) {
             $self->get_certs_from_file();
         }
-        if($self->certs_expired()) {
+        if ($self->certs_expired()) {
             $self->get_certs_from_web();
         }
     }
@@ -155,7 +155,7 @@ sub get_certs_from_file {
     open my $fh, $self->{certs_cache_file} or croak "Can't read certs from cache file($self->{certs_cache_file}): $!";
     my $json_certs = '';
     while(<$fh>) { $json_certs .= $_ }
-    if($json_certs) {
+    if ($json_certs) {
         $self->parse_certs($json_certs);
     } else {
         $self->{certs} = undef;
@@ -164,11 +164,11 @@ sub get_certs_from_file {
 }
 
 sub get_certs_from_web {
-    my($self) = @_;
+    my ($self) = @_;
     my $json_certs = get($self->{google_certs_url});
-    if($json_certs) {
+    if ($json_certs) {
         $self->parse_certs($json_certs);
-        if(!$self->{do_not_cache_certs} && $self->{certs_cache_file}) {
+        if (!$self->{do_not_cache_certs} && $self->{certs_cache_file}) {
             open my $fh, ">".$self->{certs_cache_file} or croak "Can't write certs to cache file($self->{certs_cache_file}): $!";
             print $fh $json_certs;
             close $fh;
@@ -179,7 +179,7 @@ sub get_certs_from_web {
 }
 
 sub parse_certs {
-    my($self, $json_certs) = @_;
+    my ($self, $json_certs) = @_;
     my $certs = decode_json($json_certs);
     foreach my $kid (keys %{$certs}) {
         $self->{certs}->{$kid} = Crypt::OpenSSL::X509->new_from_string($certs->{$kid});
