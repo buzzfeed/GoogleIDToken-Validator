@@ -57,7 +57,7 @@ Nothing more. Nothing connected with authorization on any of Google APIs etc etc
     my $token =  'eyJhbG..............very.long.base64.encoded.access.token............';
 
     my $payload = $validator->verify($token);
-    if($payload) {
+    if ($payload) {
         # token is OK, lets see what we have got
         use Data::Dumper;
         print "payload: ".Dumper($payload);
@@ -91,7 +91,7 @@ sub new {
 }
 
 sub verify {
-    my($self, $token) = @_;
+    my ($self, $token) = @_;
 
     if ($self->certs_expired()) {
         $self->get_certs();
@@ -122,16 +122,16 @@ sub verify {
     }
 
     foreach my $cid (@{$self->{app_client_ids}}) {
-        return $payload if($cid eq $payload->{azp});
+        return $payload if ($cid eq $payload->{azp});
     }
     carp "App Client ID missmatch. ($payload->{azp})."
 }
 
 sub certs_expired {
     my $self = shift;
-    return 1 if(!$self->{certs});
+    return 1 if (!$self->{certs});
     foreach my $kid (keys %{$self->{certs}}) {
-        return 1 if(str2time($self->{certs}->{$kid}->notAfter()) < time);
+        return 1 if (str2time($self->{certs}->{$kid}->notAfter()) < time);
     }
     return 0;
 }
@@ -154,7 +154,7 @@ sub get_certs_from_file {
     my $self = shift;
     open my $fh, $self->{certs_cache_file} or croak "Can't read certs from cache file($self->{certs_cache_file}): $!";
     my $json_certs = '';
-    while(<$fh>) { $json_certs .= $_ }
+    while (<$fh>) { $json_certs .= $_ }
     if ($json_certs) {
         $self->parse_certs($json_certs);
     } else {
