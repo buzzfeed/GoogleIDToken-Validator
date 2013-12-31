@@ -1,6 +1,8 @@
 use 5.006;
+
 use strict;
 use warnings FATAL => 'all';
+
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
@@ -18,8 +20,12 @@ WriteMakefile(
         'Test::More' => 0,
     },
     PREREQ_PM => {
-        #'ABC'              => 1.6,
-        #'Foo::Bar::Module' => 5.0401,
+        'JSON' => 0,
+        'LWP::Simple' => 0,
+        'Date::Parse' => 0,
+        'Crypt::OpenSSL::RSA' => 0,
+        'Crypt::OpenSSL::X509' => 0,
+        'MIME::Base64::URLSafe' => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES => 'GoogleIDToken-Validator-*' },
