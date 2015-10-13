@@ -21,7 +21,7 @@ WriteMakefile(
     },
     PREREQ_PM => {
         'JSON' => 0,
-        'LWP::Simple' => 0,
+        'LWP::UserAgent' => 0,
         'Date::Parse' => 0,
         'Crypt::OpenSSL::RSA' => 0,
         'Crypt::OpenSSL::X509' => 0,
