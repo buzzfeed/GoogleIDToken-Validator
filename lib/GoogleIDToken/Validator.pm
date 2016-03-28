@@ -11,7 +11,7 @@ use MIME::Base64::URLSafe;
 use Crypt::OpenSSL::X509;
 use Crypt::OpenSSL::RSA;
 use Date::Parse;
-use LWP::Simple;
+use LWP::UserAgent;
 use JSON;
 
 =head1 NAME
@@ -62,7 +62,9 @@ Nothing more. Nothing connected with authorization on any of Google APIs etc. et
             '777777777777-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',
             # and your eclipse debug keystore ID
             '888888888888-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.apps.googleusercontent.com',
-        ]
+        ],
+        # Optional LWP::UserAgent compatible UA object:
+        ua => LWP::UserAgent->new,
     );
 
     # web_client_id and at least one of app_client_ids are required
@@ -86,6 +88,7 @@ sub new {
     $self->{google_certs_url} = exists $args{google_certs_url} ? $args{google_certs_url} : 'https://www.googleapis.com/oauth2/v1/certs';
     $self->{certs_cache_file} = exists $args{certs_cache_file} ? $args{certs_cache_file} : undef;
     $self->{do_not_cache_certs} = exists $args{do_not_cache_certs} ? $args{do_not_cache_certs} : 0;
+    $self->{ua} = $args{ua} || LWP::UserAgent->new;
 
     if ($args{web_client_id}) {
         $self->{web_client_id} = $args{web_client_id};
@@ -179,7 +182,7 @@ sub get_certs_from_file {
 
 sub get_certs_from_web {
     my ($self) = @_;
-    my $json_certs = get($self->{google_certs_url});
+    my $json_certs = $self->ua->get($self->{google_certs_url})->decoded_content;
     if ($json_certs) {
         $self->parse_certs($json_certs);
         if (!$self->{do_not_cache_certs} && $self->{certs_cache_file}) {
